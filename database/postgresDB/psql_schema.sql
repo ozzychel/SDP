@@ -8,14 +8,14 @@ CREATE TABLE hotel (
   title VARCHAR(100) NOT NULL,
   address TEXT NOT NULL,
   zip_code VARCHAR(15) NOT NULL,
-  rating real NOT NULL,
+  url TEXT NOT NULL,
+  rating REAL NOT NULL,
+  reviews_total INTEGER NOT NULL,
   rooms_total INTEGER NOT NULL
 );
 
 CREATE TABLE room (
   id SERIAL PRIMARY KEY,
-  floor SMALLINT NOT NULL,
-  num SMALLINT NOT NULL,
   hotel_id REFERENCES hotel(id)
 );
 
@@ -23,7 +23,7 @@ CREATE TABLE room_rate (
   id SERIAL PRIMARY KEY,
   service_id SMALLINT NOT NULL,
   service_title VARCHAR(30) NOT NULL,
-  price DECIMAL(10, 2) NOT NULL,
+  price INTEGER NOT NULL,
   day_Date DATETIME NOT NULL,
   room_id REFERENCES room(id)
 );
