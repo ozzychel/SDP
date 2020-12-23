@@ -1,0 +1,14 @@
+node_modules
+public/bundle.js
+
+## NPM ##
+npm
+npm-debug.log
+
+## MAC files ##
+.DS_Store
+
+pids
+*.pid
+logs
+*.log
