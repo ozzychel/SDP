@@ -7,15 +7,19 @@ const csvWriter = require('csv-write-stream');
 
 // scecify path to store generated CSV files
 const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
-// '../../../data/postgresData';
 
 counters = {
   hotel: 0,
   room: 0,
   guest: 0,
-  rate: 0
+  rate: 0,
+  booking: 0
 }
 
+
+/*-------------------------------------------------------
+  == HELPERS ==
+--------------------------------------------------------*/
 // creates random number(min, max)
 const randomNumber = (min, max) => Math.floor(min + Math.random() * (max - min));
 
@@ -25,9 +29,34 @@ const randomPrice = (min, max) => {
   return temp < min * 1.1 || temp > max * 0.9 ? null : temp;
 };
 
+// generate checkIn adding random number of days to now()
+const getCheckIn = (hash) => {
+  let totalDays = moment().isLeapYear() ? 366 : 365;
+  let num = randomNumber(1, totalDays - 15);
+  return moment().add(num, 'days').format('YYYY-MM-DD HH:mm:ss')
+};
+
+// generate checkOut adding 1..14 number of days to checkIn (14 days - max stay)
+const getCheckOut = (date) => {
+  let num = randomNumber(1, 14);
+  return moment(date).add(num, 'days').format('YYYY-MM-DD HH:mm:ss');
+};
+
+// randomly select room id, ensure uniqueness
+const getRoomId = (rooms, hash, min, max) => {
+  let num;
+  do{ num = randomNumber(min, max) } while (hash[num])
+  return num;
+};
+
+
+/*-------------------------------------------------------
+  == DATA GENERATORS ==
+--------------------------------------------------------*/
+
 // create hotel data, takes number of desired data as 1st param,
 // number of rooms per each hotel as 2nd param (for the sake of data calculation is set to 50)
-const createHotel = (numOfData, rooms=50) => {
+const createHotel = (numOfData = 3, rooms = 50) => {
   const generatedData = [];
   let start = counters.hotel;
   for (let i = start + 1; i <= start + numOfData; i++) {
@@ -52,7 +81,7 @@ const createHotel = (numOfData, rooms=50) => {
 };
 
 // create guest data, takes number of desired data as 1st param
-const createGuest = (numOfData) => {
+const createGuest = (numOfData = 50) => {
   const generatedData = [];
   let start = counters.guest;
   for (let i = start + 1; i <= start + numOfData; i++) {
@@ -69,13 +98,12 @@ const createGuest = (numOfData) => {
   return generatedData;
 };
 
-// create room data, takes number of desired hotels and desired number of rooms per hotel
-const createRooms = (numOfHotels = counters.hotel, roomsPerHotel = 50) => {
-  const hotels = createHotel(numOfHotels, roomsPerHotel)
+const createRooms = (hotels) => {
+  if(!hotels.length) return null;
   const generatedData = [];
   hotels.forEach((hotel, ind) => {
     let start = counters.room;
-    for (let i = start + 1; i <= start + roomsPerHotel; i++) {
+    for (let i = start + 1; i <= start + hotel.rooms_total; i++) {
       let room = {
         id: i,
         hotel_id: hotel.id
@@ -88,9 +116,9 @@ const createRooms = (numOfHotels = counters.hotel, roomsPerHotel = 50) => {
 };
 
 // creates rate for 10 different services, per each day of the year, for every room generated
-const createRoomRate = (numOfHotels = counters.hotel, roomsPerHotel = 50) => {
+const createRoomRate = (rooms) => {
+  if(!rooms.length) return null;
   const generatedData = [];
-  const rooms = createRooms(numOfHotels, roomsPerHotel);
   const serviceList = [
     {id:1, title: 'Hotels.com'},
     {id:2, title: 'Expedia.com'},
@@ -106,7 +134,7 @@ const createRoomRate = (numOfHotels = counters.hotel, roomsPerHotel = 50) => {
   let days = moment().isLeapYear() ? 366 : 365;
   rooms.forEach((room) => {
 
-    for (let i = 0; i < days; i++) {
+    for (let i = 0; i < 3; i++) {
       let sqlDate = moment().add(i, 'days').format('YYYY-MM-DD HH:mm:ss')
 
       for(let j = 0; j < serviceList.length; j++) {
@@ -125,9 +153,51 @@ const createRoomRate = (numOfHotels = counters.hotel, roomsPerHotel = 50) => {
     }
 
   })
-  console.log(generatedData)
   return generatedData;
 };
+
+// create bookings data, for the sake of simplicity each guest has a booking
+// for a separate room, to avoid date collision
+const createBooking = (guests, rooms) => {
+  if(!guests.length || !rooms.length) return null;
+  if(rooms.length < guests.length) {
+    console.log('Invalid configuration: guests number should be <= rooms number');
+    return null;
+  }
+  let min = +Infinity;
+  let max = -Infinity;
+  const generatedData = [];
+  const hash = {};
+
+  // determine min and max room id
+  rooms.forEach((room) => {
+    min = Math.min(min, room.id);
+    max = Math.max(max, room.id);
+  })
+
+  guests.forEach((guest) => {
+    // get roomId, checkIn and checkOut, ensure data is unique
+    let roomId = getRoomId(rooms, hash, min, max);
+    let checkIn = getCheckIn();
+    let checkOut = getCheckOut(checkIn);
+    let booking = {
+      id: counters.booking + 1,
+      guest_id: guest.id,
+      room_id: roomId,
+      check_in: checkIn,
+      check_out: checkOut
+    }
+    hash[booking.room_id] = true;
+    generatedData.push(booking);
+    counters.booking++;
+  })
+  return generatedData;
+};
+
+
+/*-------------------------------------------------------
+  == DRIVER FUNCTIONS ==
+--------------------------------------------------------*/
 
 // function for creating new folder in filesystem
 const createFolder = async () => {
@@ -146,11 +216,27 @@ const driver = async () => {
   // create folder
   const folder = await createFolder();
 
+  // create
+
 
   writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/out.csv`))
   writer.write({hello: "1", foo: "2", baz: "3"})
   writer.end();
 };
 
-driver()
+
+/*-------------------------------------------------------
+  == TESTING ==
+--------------------------------------------------------*/
+const test = () => {
+  const hotels = createHotel(3, 5);
+  const rooms = createRooms(hotels);
+  const rates = createRoomRate(rooms);
+  const guests = createGuest(14);
+  const bookings = createBooking(guests, rooms);
+
+  console.log(bookings)
+}
+
+test()
 console.log(counters)
