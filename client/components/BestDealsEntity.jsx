@@ -19,7 +19,7 @@ const BestDealsEntity = ({ item, userDates }) => {
       'Prestigia': 'https://static.tacdn.com/img2/branding/hotels/logo-prestigia-size-384-164.png'
     };
     return (
-      <LogoPicture src={links[item.serviceName]}></LogoPicture>
+      <LogoPicture src={links[item.service_title]}></LogoPicture>
     );
   };
 

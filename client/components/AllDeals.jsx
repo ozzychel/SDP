@@ -31,7 +31,7 @@ class AllDeals extends React.Component {
           <EntityOuter key={i}>
             <EntityInner>
               <ServiceSpan>
-                <NameSpan>{sorted[i].serviceName}</NameSpan>
+                <NameSpan>{sorted[i].service_title}</NameSpan>
                 <IconSpan><FontAwesomeIcon icon={faExternalLinkAlt} size='xs'/></IconSpan>
               </ServiceSpan>
               <PriceSpan>${sorted[i].price}</PriceSpan>
@@ -75,7 +75,7 @@ class AllDeals extends React.Component {
         rates.push(
           <PortalLineDiv key={i}>
             <PortalLineInnerDiv>
-              <PortalLineName>{hotels[0].prices[i].serviceName + ' '}</PortalLineName>
+              <PortalLineName>{hotels[0].prices[i].service_title + ' '}</PortalLineName>
               <Icon><FontAwesomeIcon icon={faExternalLinkAlt} size='xs'/></Icon>
             </PortalLineInnerDiv>
             <PortalLinePrice>{this.renderPrice(hotels[0].prices[i].price)}</PortalLinePrice>

@@ -10,10 +10,10 @@ const BestDeals = ({ currentHotel, userDates }) => {
     let best = getBestOrRestDeals(currentHotel, 'getBest');
     return (
       <Div>
-        {best.map((item)=>(
+        {best.map((item, i)=>(
           <BestDealsEntity
             item={item}
-            key={item._id}
+            key={i}
             userDates={userDates}
           />
         ))}

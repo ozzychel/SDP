@@ -1,10 +1,10 @@
 const Model = require('./models');
 
-const getHotel = (req, res) => {
-  console.log('CONTROLLER: getHotel() params:', req.params)
-  Model.getHotel('', (err, data) => {
+const getHotel = async (req, res) => {
+  let query = `SELECT * FROM hotel JOIN room ON hotel.id=room.hotel_id JOIN room_rate ON room.id=room_rate.room_id WHERE hotel.id = ${req.params.hotelId} AND room_rate.day_date = '${req.query.check_in}' ORDER BY room.id ASC, price ASC`
+  Model.getHotel(query, (err, data) => {
     if (err) res.status(400).send();
-    else res.status(200).send(data);
+    if (data) res.status(200).send(data);
   })
 };
 

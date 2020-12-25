@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-const getDataFromServer = async (term) => {
+const getDataFromServer = async ({ hotelId, check_in, check_out }) => {
   try {
-    const response = await axios.get(`/api/calendar/hotels/${term}`);
-    // console.log('==APP LOG: getDataFromServer response:', response.data.rows)
+    const response = await axios.get(`/api/calendar/hotels/${hotelId}`, {
+      params: { check_in, check_out }
+    });
     return response.data;
   } catch (err) {
     console.log('Error: in getDataFromServer', err);
-    return [];
   }
 };
 
