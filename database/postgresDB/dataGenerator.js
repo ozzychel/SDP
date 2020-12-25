@@ -13,9 +13,9 @@ const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 // 1000 hotels * 50 rooms/hotel generates 180 mil lines of data
 // 100 hotels * 50 rooms/hotel generates 18 mil lines of data
 const config = {
-  HOTELS_TOTAL: 100,
+  HOTELS_TOTAL: 10,
   ROOMS_PER_HOTEL: 50,
-  GUESTS_TOTAL: 2500,
+  GUESTS_TOTAL: 250,
   // ROOMS_TOTAL: 0,
 }
 
@@ -44,13 +44,13 @@ const randomPrice = (min, max) => {
 const getCheckIn = (hash) => {
   let totalDays = moment().isLeapYear() ? 366 : 365;
   let num = randomNumber(1, totalDays - 15);
-  return moment().add(num, 'days').format('YYYY-MM-DD HH:mm:ss')
+  return moment().add(num, 'days').format('YYYY-MM-DD')
 };
 
 // generate checkOut adding 1..14 number of days to checkIn (14 days - max stay)
 const getCheckOut = (date) => {
   let num = randomNumber(1, 14);
-  return moment(date).add(num, 'days').format('YYYY-MM-DD HH:mm:ss');
+  return moment(date).add(num, 'days').format('YYYY-MM-DD');
 };
 
 // randomly select room id, ensure uniqueness
@@ -110,7 +110,7 @@ const createRoomRate = (room) => {
   ];
   let days = moment().isLeapYear() ? 366 : 365;
     for (let i = 0; i < days; i++) {
-      let sqlDate = moment().add(i, 'days').format('YYYY-MM-DD HH:mm:ss')
+      let sqlDate = moment().add(i, 'days').format('YYYY-MM-DD')
       for(let j = 0; j < serviceList.length; j++) {
         let rate = {
           id: counters.rate + 1,
@@ -428,7 +428,7 @@ const driver = async () => {
   const guests = await writeToGuestsCSV(writeGuests, config);
 
   // create hotels
-  const writeHotels = csvWriter({ headers: ['id', 'title', 'address', 'zip_code', 'url', 'rating', 'reviews_total', 'rooms_total'] });
+  const writeHotels = csvWriter({ headers: ['id', 'title', 'zip_code', 'address', 'url', 'rating', 'reviews_total', 'rooms_total'] });
   const hotels = await writeToHotelCSV(writeHotels, config);
 
   // extract data from hotels
@@ -462,7 +462,7 @@ const driver = async () => {
     currentNum++;
   }
 
-  console.log('\n',counters, '\n')
+  console.log('\n','TOTAL DATA GENERATED:', counters, '\n')
 };
 
 driver();

@@ -52,6 +52,7 @@
     "csv-parser": "^3.0.0",
     "csv-write-stream": "^2.0.0",
     "eslint-plugin-react": "^7.20.0",
+    "pg": "^8.5.1",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.12"
   }
