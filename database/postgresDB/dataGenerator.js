@@ -3,19 +3,30 @@ const moment = require('moment');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const path = require('path');
+const csvReader = require('csv-parser');
 const csvWriter = require('csv-write-stream');
 
 // scecify path to store generated CSV files
 const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 
-counters = {
+// set up this config to specify desired amount of data to be generated
+// 1000 hotels * 50 rooms/hotel generates 180 mil lines of data
+// 100 hotels * 50 rooms/hotel generates 18 mil lines of data
+const config = {
+  HOTELS_TOTAL: 100,
+  ROOMS_PER_HOTEL: 50,
+  GUESTS_TOTAL: 2500,
+  // ROOMS_TOTAL: 0,
+}
+
+// count generated data
+const counters = {
   hotel: 0,
   room: 0,
   guest: 0,
   rate: 0,
   booking: 0
 }
-
 
 /*-------------------------------------------------------
   == HELPERS ==
@@ -49,80 +60,46 @@ const getRoomId = (rooms, hash, min, max) => {
   return num;
 };
 
-
 /*-------------------------------------------------------
-  == DATA GENERATORS ==
+  == DATA GENERATING FUNCTIONS ==
 --------------------------------------------------------*/
 
-// create hotel data, takes number of desired data as 1st param,
-// number of rooms per each hotel as 2nd param (for the sake of data calculation is set to 50)
-const createHotel = (numOfData = 3, rooms = 50) => {
-  const generatedData = [];
-  let start = counters.hotel;
-  for (let i = start + 1; i <= start + numOfData; i++) {
+// creates random hotel
+const createHotel = (roomsNum) => {
     let hotel = {
-      id: i,
       title: faker.lorem.sentence(),
+      zip_code: faker.address.zipCode(),
       address: '',
-      zip_code: '',
       url: faker.internet.url(),
       rating: parseFloat((1 + Math.random() * (5 - 1)).toFixed(2)),
       reviews_total: randomNumber(0, 20000),
-      rooms_total: rooms
+      rooms_total: roomsNum
     }
-    let zip = faker.address.zipCode();
-    let addr = faker.address.streetAddress() + ', ' + faker.address.stateAbbr() + ', ' + zip;
-    hotel.address = addr;
-    hotel.zip_code = zip;
-    generatedData.push(hotel);
-    counters.hotel ++;
-  }
-  return generatedData;
+    hotel.address = faker.address.streetAddress() + ', ' + faker.address.stateAbbr() + ', ' + hotel.zip_code
+    counters.hotel++;
+    return hotel;
 };
 
-// create guest data, takes number of desired data as 1st param
-const createGuest = (numOfData = 50) => {
-  const generatedData = [];
-  let start = counters.guest;
-  for (let i = start + 1; i <= start + numOfData; i++) {
+// creates random guest
+const createGuest = () => {
     let guest = {
-      id: i,
       first_name: faker.name.firstName(),
       last_name: faker.name.lastName(),
       email: faker.internet.email(),
       phone: faker.phone.phoneNumberFormat()
     }
-    generatedData.push(guest);
-  }
-  counters.guest += numOfData;
-  return generatedData;
+  counters.guest++;
+  return guest;
 };
 
-const createRooms = (hotels) => {
-  if(!hotels.length) return null;
-  const generatedData = [];
-  hotels.forEach((hotel, ind) => {
-    let start = counters.room;
-    for (let i = start + 1; i <= start + hotel.rooms_total; i++) {
-      let room = {
-        id: i,
-        hotel_id: hotel.id
-      }
-      generatedData.push(room);
-      counters.room++;
-    }
-  })
-  return generatedData;
-};
-
-// creates rate for 10 different services, per each day of the year, for every room generated
-const createRoomRate = (rooms) => {
-  if(!rooms.length) return null;
+// creates rate for 10 different services, per each day of the year
+const createRoomRate = (room) => {
+  if(!room) return null;
   const generatedData = [];
   const serviceList = [
     {id:1, title: 'Hotels.com'},
     {id:2, title: 'Expedia.com'},
-    {id:3, title:'Snaptravel'},
+    {id:3, title: 'Snaptravel'},
     {id:4, title: 'Booking.com'},
     {id:5, title: 'Zenhotels'},
     {id:6, title: 'Orbitz.com'},
@@ -132,11 +109,8 @@ const createRoomRate = (rooms) => {
     {id:10, title: 'Tripadvisor'}
   ];
   let days = moment().isLeapYear() ? 366 : 365;
-  rooms.forEach((room) => {
-
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < days; i++) {
       let sqlDate = moment().add(i, 'days').format('YYYY-MM-DD HH:mm:ss')
-
       for(let j = 0; j < serviceList.length; j++) {
         let rate = {
           id: counters.rate + 1,
@@ -149,16 +123,12 @@ const createRoomRate = (rooms) => {
         generatedData.push(rate);
         counters.rate++;
       }
-
     }
-
-  })
   return generatedData;
 };
 
-// create bookings data, for the sake of simplicity each guest has a booking
-// for a separate room, to avoid date collision
-const createBooking = (guests, rooms) => {
+// create hotel booking for every guest
+const createBooking = (rooms, guests) => {
   if(!guests.length || !rooms.length) return null;
   if(rooms.length < guests.length) {
     console.log('Invalid configuration: guests number should be <= rooms number');
@@ -169,14 +139,12 @@ const createBooking = (guests, rooms) => {
   const generatedData = [];
   const hash = {};
 
-  // determine min and max room id
   rooms.forEach((room) => {
     min = Math.min(min, room.id);
     max = Math.max(max, room.id);
   })
 
   guests.forEach((guest) => {
-    // get roomId, checkIn and checkOut, ensure data is unique
     let roomId = getRoomId(rooms, hash, min, max);
     let checkIn = getCheckIn();
     let checkOut = getCheckOut(checkIn);
@@ -196,47 +164,305 @@ const createBooking = (guests, rooms) => {
 
 
 /*-------------------------------------------------------
+  == READ/WRITE FUNCTIONS ==
+--------------------------------------------------------*/
+
+// write hotels to .csv
+const writeToHotelCSV = (writer, { HOTELS_TOTAL, ROOMS_PER_HOTEL }) => {
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    let id = counters.hotel;
+    writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/hotel.csv`))
+    function write() {
+      let ok = true;
+      do {
+        id += 1;
+        let data = createHotel(ROOMS_PER_HOTEL);
+        data['id'] = id;
+        if (i === HOTELS_TOTAL - 1) {
+          console.log(`+++ HOTELS: created ${HOTELS_TOTAL} lines`)
+          writer.write(data, () => {
+            writer.end();
+            resolve(true);
+          });
+          i++;
+        } else {
+          ok = writer.write(data);
+          i++
+        }
+    } while (i < HOTELS_TOTAL && ok);
+    if (i < HOTELS_TOTAL) {
+      writer.once('drain', write);
+    }
+  }
+  write();
+  })
+};
+
+// write guests to .csv
+const writeToGuestsCSV = (writer, { GUESTS_TOTAL }) => {
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    let id = counters.guest;
+    writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/guest.csv`))
+    function write() {
+      let ok = true;
+      do {
+        id += 1;
+        let data = createGuest();
+        data['id'] = id;
+        if (i === GUESTS_TOTAL - 1) {
+          console.log(`+++ GUESTS: created ${GUESTS_TOTAL} lines`)
+          writer.write(data, () => {
+            writer.end();
+            // console.log(counters)
+            resolve(true);
+          });
+          i++;
+        } else {
+          ok = writer.write(data);
+          i++;
+        }
+      } while (i < GUESTS_TOTAL && ok);
+      if (i < GUESTS_TOTAL) {
+        writer.once('drain', write);
+      }
+    }
+    write();
+  })
+}
+
+// reads hotel.csv and extracts hotel_id
+const readFromHotelCSV = (filename) => {
+  return new Promise((resolve, reject) => {
+    const extractedData = [];
+    fs.createReadStream(filename)
+      .pipe(csvReader({
+        mapHeaders: ({ header, index }) => header === 'id' || header === 'rooms_total' ? header : null,
+        mapValues: ({ header, index, value }) => {
+          if(header === 'id' || header === 'rooms_total') return parseInt(value);
+          else return 0;
+        }
+      }))
+      .on('data', (row) => {
+        extractedData.push(row);
+      })
+      .on('end', () => {
+        console.log(`+++ READ_HOTELS: hotel_id(s) extracted ${extractedData.length} lines`);
+        resolve(extractedData);
+      });
+    })
+};
+
+// reads room.csv and extracts room_id
+const readFromRoomCSV = (filename) => {
+  return new Promise((resolve, reject) => {
+    const extractedData = [];
+    fs.createReadStream(filename)
+      .pipe(csvReader({
+        mapHeaders: ({ header, index }) => header === 'id' ? header : null,
+        mapValues: ({ header, index, value }) => {
+          if(header === 'id') return parseInt(value);
+          else return 0;
+        }
+      }))
+      .on('data', (row) => {
+        extractedData.push(row);
+      })
+      .on('end', () => {
+        console.log(`+++ READ_ROOMS: room_id(s) extracted ${extractedData.length} lines`);
+        resolve(extractedData);
+      });
+  })
+};
+
+// reads guest.csv and extracts guest_id
+const readFromGuestCSV = (filename) => {
+  return new Promise((resolve, reject) => {
+    const extractedData = [];
+    fs.createReadStream(filename)
+      .pipe(csvReader({
+        mapHeaders: ({ header, index }) => header === 'id' ? header : null,
+        mapValues: ({ header, index, value }) => {
+          if(header === 'id') return parseInt(value);
+          else return 0;
+        }
+      }))
+      .on('data', (row) => {
+        extractedData.push(row);
+      })
+      .on('end', () => {
+        console.log(`+++ READ_GUESTS: guest_id(s) extracted ${extractedData.length} lines`);
+        resolve(extractedData);
+      });
+  })
+}
+
+// write rooms to .csv
+const writeToRoomsCSV = (writer, arr) => {
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    let id = counters.room + 1;
+    let roomsTotal = arr[0].rooms_total;
+    writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/room.csv`))
+
+    function write() {
+      let ok = true;
+      do {
+        if (i === arr.length - 1) {
+          for(let j = 0; j < roomsTotal; j++) {
+            let data = {
+              id: id,
+              hotel_id: arr[i].id
+            }
+            id++;
+            counters.room++;
+            writer.write(data);
+          }
+          i++;
+          console.log(`+++ ROOMS: created ${id - 1} lines`)
+          writer.end();
+          resolve(true);
+        } else {
+          for(let j = 0; j < roomsTotal; j++) {
+            let data = {
+              id: id,
+              hotel_id: arr[i].id
+            }
+            ok = writer.write(data);
+            id++;
+            counters.room++;
+          }
+          i++;
+        }
+      } while (i < arr.length && ok);
+      if (i < arr.length) {
+        writer.once('drain', write);
+      }
+    }
+    write();
+  })
+};
+
+// write roomRates to .csv
+const writeToRatesCSV = (writer, arr, fileNum) => {
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/roomRate${fileNum}.csv`));
+    function write () {
+      let ok = true;
+      do{
+        let data = createRoomRate(arr[i]);
+        if(i === arr.length - 1) {
+          for (let j = 0; j < data.length; j++) {
+            ok = writer.write(data[j]);
+          }
+          writer.end();
+          resolve(true);
+          i++;
+        } else {
+          for (let j = 0; j < data.length; j++) {
+            ok = writer.write(data[j]);
+          }
+          i++;
+        }
+      } while (i < arr.length && ok)
+      if(i < arr.length) {
+        writer.once('drain', write)
+      }
+    }
+    write();
+  })
+};
+
+// write bookings to .csv
+const writeToBookingCSV = (writer, roomsArr, guestsArr) => {
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/booking.csv`));
+    function write () {
+      let ok = true;
+      do{
+        let data = createBooking(roomsArr, guestsArr)
+        if(i === 0) {
+          for(let j = 0; j < data.length; j++) {
+            ok = writer.write(data[j]);
+          }
+          writer.end();
+          resolve(true);
+          i++;
+        } else {
+          ok = writer.write(data);
+          i++;
+        }
+      } while (i < 1 && ok)
+      if(i < 1) {
+        writer.once('drain', write)
+      }
+    }
+    write();
+  })
+};
+
+
+/*-------------------------------------------------------
   == DRIVER FUNCTIONS ==
 --------------------------------------------------------*/
 
-// function for creating new folder in filesystem
+// creates new folder in filesystem
 const createFolder = async () => {
   try{
     let folder = await fsPromises.mkdir(`${OUTPUT_PATH}`, { recursive: true })
-    console.log(`++ FOLDER CREATION SUCCESS:\n${OUTPUT_PATH}`);
+    console.log(`+++ FOLDER: new folder created:\n${OUTPUT_PATH}`);
   } catch (err) {
     console.log(err);
   }
 };
 
-// driver function, write generated data to CSV file
 const driver = async () => {
-  const writer = csvWriter({ headers: ["hello", "foo"]})
-
   // create folder
   const folder = await createFolder();
 
-  // create
+  // create guests
+  const writeGuests = csvWriter({ headers: ['id', 'first_name', 'last_name', 'email', 'phone'] });
+  const guests = await writeToGuestsCSV(writeGuests, config);
 
+  // create hotels
+  const writeHotels = csvWriter({ headers: ['id', 'title', 'address', 'zip_code', 'url', 'rating', 'reviews_total', 'rooms_total'] });
+  const hotels = await writeToHotelCSV(writeHotels, config);
 
-  writer.pipe(fs.createWriteStream(`${OUTPUT_PATH}/out.csv`))
-  writer.write({hello: "1", foo: "2", baz: "3"})
-  writer.end();
+  // extract data from hotels
+  const dataFromHotelCSV = await readFromHotelCSV(`${OUTPUT_PATH}/hotel.csv`);
+  console.log('+++ hotel_id(s) extracted:', dataFromHotelCSV.length);
+
+  // create rooms
+  const writeRooms = csvWriter({ headers: ['id', 'hotel_id'] });
+  const rooms = await writeToRoomsCSV(writeRooms, dataFromHotelCSV);
+
+  // extract room_id from rooms
+  const dataFromRoomCSV = await readFromRoomCSV(`${OUTPUT_PATH}/room.csv`);
+
+  // extract guest_id from guests
+  const dataFromGuestCSV = await readFromGuestCSV(`${OUTPUT_PATH}/guest.csv`);
+
+  // create bookings
+  const writeBookings = csvWriter({ headers: ['id', 'guest_id', 'room_id', 'check_in', 'check_out'] });
+  const bookings = await writeToBookingCSV(writeBookings, dataFromRoomCSV, dataFromGuestCSV);
+
+  // create roomRates, write to several files
+  const leng = dataFromRoomCSV.length;
+  const numberOfRateFiles = 3;
+  const chunkSize = Math.floor(leng / numberOfRateFiles);
+  let currentNum = 1;
+
+  for (let i = 0; i < leng; i += chunkSize) {
+    let writeRoomRates = csvWriter({ headers: ['id', 'service_id', 'service_title', 'price', 'day_Date', 'room_id']})
+    let chunk = dataFromRoomCSV.slice(i, i + chunkSize)
+    let roomRates = await writeToRatesCSV(writeRoomRates, chunk, currentNum);
+    currentNum++;
+  }
+
+  console.log('\n',counters, '\n')
 };
 
-
-/*-------------------------------------------------------
-  == TESTING ==
---------------------------------------------------------*/
-const test = () => {
-  const hotels = createHotel(3, 5);
-  const rooms = createRooms(hotels);
-  const rates = createRoomRate(rooms);
-  const guests = createGuest(14);
-  const bookings = createBooking(guests, rooms);
-
-  console.log(bookings)
-}
-
-test()
-console.log(counters)
+driver();

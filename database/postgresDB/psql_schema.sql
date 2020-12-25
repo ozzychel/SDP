@@ -6,8 +6,8 @@ CREATE DATABASE calendar;
 CREATE TABLE hotel (
   id SERIAL PRIMARY KEY,
   title VARCHAR(100) NOT NULL,
-  address TEXT NOT NULL,
   zip_code VARCHAR(15) NOT NULL,
+  address TEXT NOT NULL,
   url TEXT NOT NULL,
   rating REAL NOT NULL,
   reviews_total INTEGER NOT NULL,
