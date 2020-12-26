@@ -30,6 +30,7 @@ CREATE TABLE guest (
 
 CREATE TABLE room (
   id SERIAL PRIMARY KEY,
+  beds SMALLINT NOT NULL,
   hotel_id INTEGER REFERENCES hotel(id)
 );
 
@@ -59,7 +60,7 @@ COPY guest(id,first_name,last_name,email,phone)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/guest.csv' DELIMITER ',' CSV HEADER;
 
 -- import room
-COPY room(id,hotel_id)
+COPY room(id,beds,hotel_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/room.csv' DELIMITER ',' CSV HEADER;
 
 -- import booking

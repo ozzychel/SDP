@@ -14,9 +14,9 @@ const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 // 100 hotels * 50 rooms/hotel generates 18 mil lines of data
 
 const config = {
-  HOTELS_TOTAL: 1000,
-  ROOMS_PER_HOTEL: 50,
-  GUESTS_TOTAL: 25000,
+  HOTELS_TOTAL: 100,
+  ROOMS_PER_HOTEL: 5,
+  GUESTS_TOTAL: 25,
 }
 
 // count generated data
@@ -118,7 +118,8 @@ const createRoomRate = (room) => {
           service_title: serviceList[j].title,
           price: Math.floor(randomPrice(80, 980)),
           day_Date: sqlDate,
-          room_id: room.id
+          room_id: room.id,
+
         }
         generatedData.push(rate);
         counters.rate++;
@@ -315,6 +316,7 @@ const writeToRoomsCSV = (writer, arr) => {
               id: id,
               hotel_id: arr[i].id
             }
+            data.beds = randomNumber(1,15);
             id++;
             counters.room++;
             writer.write(data);
@@ -329,6 +331,7 @@ const writeToRoomsCSV = (writer, arr) => {
               id: id,
               hotel_id: arr[i].id
             }
+            data.beds = randomNumber(1,15)
             ok = writer.write(data);
             id++;
             counters.room++;
@@ -436,7 +439,7 @@ const driver = async () => {
   console.log('+++ hotel_id(s) extracted:', dataFromHotelCSV.length);
 
   // create rooms
-  const writeRooms = csvWriter({ headers: ['id', 'hotel_id'] });
+  const writeRooms = csvWriter({ headers: ['id', 'beds', 'hotel_id'] });
   const rooms = await writeToRoomsCSV(writeRooms, dataFromHotelCSV);
 
   // extract room_id from rooms
