@@ -9,11 +9,11 @@ const cluster = require('cluster');
 const numCPUs = require('os').cpus().length;
 const Controllers = require('./controllers');
 
-// if (cluster.isMaster) {
-//   for (let i = 0; i < numCPUs; i++) {
-//     cluster.fork();
-//   }
-// } else {
+if (cluster.isMaster) {
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+} else {
   app.use(parser.json());
   app.use(cors());
   app.use(express.static('public'));
@@ -24,4 +24,4 @@ const Controllers = require('./controllers');
   });
 
   app.listen(port, () => console.log(`App is listening at http://localhost:${port}`));
-// }
+}

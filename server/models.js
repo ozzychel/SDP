@@ -1,7 +1,6 @@
 const db = require('../database/postgresDB/index');
 
 const getHotel = async (query, callback) => {
-  console.log('MODELS: getHotel() invoked')
   try{
     let queryResult = await db.pool.query(query);
     let processed = await calcualteLowestPrice(queryResult.rows);
