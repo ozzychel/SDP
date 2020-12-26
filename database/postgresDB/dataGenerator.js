@@ -12,10 +12,11 @@ const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 // set up this config to specify desired amount of data to be generated
 // 1000 hotels * 50 rooms/hotel generates 180 mil lines of data
 // 100 hotels * 50 rooms/hotel generates 18 mil lines of data
+
 const config = {
-  HOTELS_TOTAL: 100,
-  ROOMS_PER_HOTEL: 10,
-  GUESTS_TOTAL: 250,
+  HOTELS_TOTAL: 1000,
+  ROOMS_PER_HOTEL: 50,
+  GUESTS_TOTAL: 25000,
 }
 
 // count generated data
@@ -450,7 +451,7 @@ const driver = async () => {
 
   // create roomRates, write to several files
   const leng = dataFromRoomCSV.length;
-  const numberOfRateFiles = 3;
+  const numberOfRateFiles = 10;
   const chunkSize = Math.floor(leng / numberOfRateFiles);
   let currentNum = 1;
 

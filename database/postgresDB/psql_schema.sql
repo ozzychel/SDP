@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS guest;
 
 CREATE TABLE hotel (
   id SERIAL PRIMARY KEY,
-  title VARCHAR(100) NOT NULL,
+  title TEXT NOT NULL,
   zip_code VARCHAR(15) NOT NULL,
   address TEXT NOT NULL,
   url TEXT NOT NULL,
@@ -79,7 +79,47 @@ FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate3.csv' DELIMITER '
 COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate4.csv' DELIMITER ',' CSV HEADER;
 
--- create indexes
+COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate5.csv' DELIMITER ',' CSV HEADER;
 
--- CREATE INDEX CONCURRENTLY hotel_id_idx ON hotel (id);
--- CREATE INDEX CONCURRENTLY userid_idx ON users (user_id);
+COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate6.csv' DELIMITER ',' CSV HEADER;
+
+COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate7.csv' DELIMITER ',' CSV HEADER;
+
+COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate8.csv' DELIMITER ',' CSV HEADER;
+
+COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate9.csv' DELIMITER ',' CSV HEADER;
+
+COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate10.csv' DELIMITER ',' CSV HEADER;
+
+-- drop indexes
+DROP INDEX hotel_id_idx;
+DROP INDEX guest_id_idx;
+DROP INDEX room_id_idx;
+DROP INDEX room_hotelid_idx;
+DROP INDEX booking_id_idx;
+DROP INDEX booking_guestid_idx;
+DROP INDEX booking_roomid_idx;
+DROP INDEX room_rate_id_idx;
+DROP INDEX room_rate_roomid_idx;
+DROP INDEX room_rate_day_idx;
+
+-- create indexes
+CREATE INDEX CONCURRENTLY hotel_id_idx ON hotel (id);
+CREATE INDEX CONCURRENTLY guest_id_idx ON guest (id);
+
+CREATE INDEX CONCURRENTLY room_id_idx ON room (id);
+CREATE INDEX CONCURRENTLY room_hotelid_idx ON room (hotel_id);
+
+CREATE INDEX CONCURRENTLY booking_id_idx ON booking (id);
+CREATE INDEX CONCURRENTLY booking_guestid_idx ON booking (guest_id);
+CREATE INDEX CONCURRENTLY booking_roomid_idx ON booking (room_id);
+
+CREATE INDEX CONCURRENTLY room_rate_id_idx ON room_rate (id);
+CREATE INDEX CONCURRENTLY room_rate_roomid_idx ON room_rate (room_id);
+CREATE INDEX CONCURRENTLY room_rate_day_idx ON room_rate (day_Date);
