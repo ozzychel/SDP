@@ -26,13 +26,25 @@ const getHotelUpdated = async (hotelId, conf, callback) => {
 };
 
 const bookHotelRoom = async (hotelId, { guest_id, room_id, check_in, check_out }, callback) => {
-  let query = `INSERT INTO booking (guest_id, room_id, check_in, check_out) VALUES (${guest_id}, ${room_id}, ${check_in}, ${check_out})`
+  let query = `INSERT INTO booking (guest_id, room_id, check_in, check_out) VALUES (${guest_id}, ${room_id}, '${check_in}', '${check_out}')`;
   try{
     let result = await db.pool.query(query);
-    callback(null, result)
+    callback(null, result);
   } catch (err) {
     console.log('Error: in Model.bookHotelRoom', err);
-    callback(err, null)
+    callback(err, null);
+  }
+};
+
+const deleteBooking = async (hotelId, { rate_id, guest_id, room_id }, callback) => {
+  let query = `DELETE FROM booking WHERE id = ${rate_id} AND guest_id = ${guest_id} AND room_id = ${room_id};`;
+  console.log(query)
+  try{
+    let result = await db.pool.query(query);
+    callback(null, result);
+  } catch (err) {
+    console.log('Error: in Model.deleteBooking', err);
+    callback(err, null);
   }
 }
 
@@ -91,5 +103,6 @@ function calcualteLowestPrice (arr) {
 module.exports = {
   getHotel,
   getHotelUpdated,
-  bookHotelRoom
+  bookHotelRoom,
+  deleteBooking
 };

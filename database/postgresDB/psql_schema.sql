@@ -3,12 +3,6 @@ CREATE DATABASE calendar;
 
 \connect calendar;
 
-DROP TABLE IF EXISTS booking;
-DROP TABLE IF EXISTS room_rate;
-DROP TABLE IF EXISTS room;
-DROP TABLE IF EXISTS hotel;
-DROP TABLE IF EXISTS guest;
-
 CREATE TABLE hotel (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
@@ -52,63 +46,80 @@ CREATE TABLE room_rate (
 );
 
 -- import hotel
-COPY hotel(id,title,zip_code,address,url,rating,reviews_total,rooms_total)
+CREATE TABLE temp_hotel(id INTEGER PRIMARY KEY, title TEXT NOT NULL, zip_code VARCHAR(15) NOT NULL,
+  address TEXT NOT NULL, url TEXT NOT NULL, rating REAL NOT NULL, reviews_total INTEGER NOT NULL,rooms_total INTEGER NOT NULL
+);
+COPY temp_hotel(id,title,zip_code,address,url,rating,reviews_total,rooms_total)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/hotel.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO hotel (title,zip_code,address,url,rating,reviews_total,rooms_total)
+SELECT title,zip_code,address,url,rating,reviews_total,rooms_total
+FROM temp_hotel;
+DROP TABLE temp_hotel;
 
 -- import guest
-COPY guest(id,first_name,last_name,email,phone)
+CREATE TABLE temp_guest (id INTEGER PRIMARY KEY, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, email VARCHAR(100) NOT NULL, phone VARCHAR(20) NOT NULL);
+COPY temp_guest(id, first_name,last_name,email,phone)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/guest.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO guest(first_name,last_name,email,phone)
+SELECT first_name,last_name,email,phone
+FROM temp_guest;
+DROP TABLE temp_guest;
 
 -- import room
-COPY room(id,beds,hotel_id)
+CREATE TABLE temp_room (id INTEGER PRIMARY KEY, beds SMALLINT NOT NULL, hotel_id INTEGER REFERENCES hotel(id));
+COPY temp_room(id,beds,hotel_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/room.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO room(beds,hotel_id)
+SELECT beds,hotel_id
+FROM temp_room;
+DROP TABLE temp_room;
 
 -- import booking
-COPY booking(id,guest_id,room_id,check_in,check_out)
+CREATE TABLE temp_booking (id INTEGER NOT NULL,guest_id INTEGER REFERENCES guest(id),room_id INTEGER REFERENCES room(id),check_in DATE NOT NULL,check_out DATE NOT NULL);
+COPY temp_booking(id,guest_id,room_id,check_in,check_out)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/booking.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO booking(guest_id,room_id,check_in,check_out)
+SELECT guest_id,room_id,check_in,check_out
+FROM temp_booking;
+DROP TABLE temp_booking;
 
 -- import room_rate
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+CREATE TABLE temp_room_rate (id INTEGER PRIMARY KEY,service_id SMALLINT NOT NULL,service_title VARCHAR(30) NOT NULL,price INTEGER NOT NULL,day_Date DATE NOT NULL,room_id INTEGER REFERENCES room(id));
+
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate1.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate2.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate3.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate4.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate5.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate6.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate7.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate8.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate9.csv' DELIMITER ',' CSV HEADER;
 
-COPY room_rate(id,service_id,service_title,price,day_Date,room_id)
+COPY temp_room_rate(id,service_id,service_title,price,day_Date,room_id)
 FROM '/Users/ozzy_chel/Projects/SDP/data/postgresData/roomRate10.csv' DELIMITER ',' CSV HEADER;
 
--- drop indexes
-DROP INDEX hotel_id_idx;
-DROP INDEX guest_id_idx;
-DROP INDEX room_id_idx;
-DROP INDEX room_hotelid_idx;
-DROP INDEX booking_id_idx;
-DROP INDEX booking_guestid_idx;
-DROP INDEX booking_roomid_idx;
-DROP INDEX room_rate_id_idx;
-DROP INDEX room_rate_roomid_idx;
-DROP INDEX room_rate_day_idx;
+INSERT INTO room_rate(service_id,service_title,price,day_Date,room_id)
+SELECT service_id,service_title,price,day_Date,room_id
+FROM temp_room_rate;
+DROP TABLE temp_room_rate;
 
 -- create indexes
 CREATE INDEX CONCURRENTLY hotel_id_idx ON hotel (id);

@@ -23,8 +23,16 @@ const bookHotelRoom = (req, res) => {
   })
 };
 
+const deleteBooking = (req,res) => {
+  Model.deleteBooking(req.params.hotelId, req.query, (err, data) => {
+    if (err) res.status(400).send();
+    if (data) res.status(200).send('ok');
+  })
+};
+
 module.exports = {
   getHotel,
   getHotelUpdated,
-  bookHotelRoom
+  bookHotelRoom,
+  deleteBooking
 };
