@@ -14,10 +14,10 @@ const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 // 100 hotels * 50 rooms/hotel generates 18 mil lines of data
 
 const config = {
-  HOTELS_TOTAL: 100, // total hotels to create
-  ROOMS_PER_HOTEL: 50, // number of rooms per 1 hotel
-  GUESTS_TOTAL: 25000, // total guests to create
-  DAYS_CREATE_RATE: 5, // number of days from today to create rate (massive!!!)
+  HOTELS_TOTAL: 10000, // total hotels to create
+  ROOMS_PER_HOTEL: 1, // number of rooms per 1 hotel
+  GUESTS_TOTAL: 25, // total guests to create
+  DAYS_CREATE_RATE: 2, // number of days from today to create rate (massive!!!)
   NUMBER_OF_RATE_FILES: 10 // number of .csv file to split created rates
 }
 

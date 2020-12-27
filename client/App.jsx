@@ -40,11 +40,12 @@ class App extends React.Component {
     this.renderDate = this.renderDate.bind(this);
     this.displayNotAvailableMsg = this.displayNotAvailableMsg.bind(this);
     this.updateGuestPickerInfo = this.updateGuestPickerInfo.bind(this);
+    this.getUpdatedDates = this.getUpdatedDates.bind(this);
   }
 
   componentDidMount () {
     this.getData({
-      hotelId: 400,
+      hotelId: 5000001,
       check_in: moment(this.state.today).format('YYYY-MM-DD'),
       check_out: moment(this.state.today).add(1, 'day').format('YYYY-MM-DD')
     });
@@ -59,25 +60,30 @@ class App extends React.Component {
     });
   }
 
-  getUpdatedData (...args) {
-    let query = [...args][0];
-    query.id = this.state.currentHotel[0].id;
-    if (query.checkIn) {
-      this.setState({
-        checkIn: query.checkIn,
-        checkOut: query.checkOut
-      });
+  getUpdatedData (config) {
+    let query = {
+      guestsNumber: config.guestsNumber,
+      roomsNumber: config.roomsNumber,
+      adultsNumber: config.adultsNumber,
+      childrenNumber: config.childrenNumber,
+      hotelId: this.state.currentHotel[0].hotel_id,
+      check_in: !this.state.checkIn ? moment().format('YYYY-MM-DD') : this.state.checkIn,
+      check_out: !this.state.checkOut ? moment().add(1, 'day').format('YYYY-MM-DD') : this.state.checkOut
     }
-    if (!query.guestsNumber) query.guestsNumber = 2;
-    if (!query.roomsNumber) query.roomsNumber = 1;
-    if (!query.checkIn) {
-      if (!this.state.checkIn) query.checkIn = moment().format('YYYY-MM-DD');
-      else query.checkIn = this.state.checkIn;
+    getUpdatedDataFromServer(query, this.handleResponse);
+  };
+
+  getUpdatedDates ({ checkIn, checkOut }) {
+    let query = {
+      adultsNumber: this.state.userConfig.adultsNumber,
+      childrenNumber: this.state.userConfig.childrenNumber,
+      roomsNumber: this.state.userConfig.roomsNumber,
+      guestsNumber: this.state.userConfig.adultsNumber + this.state.userConfig.childrenNumber,
+      hotelId: this.state.currentHotel[0].hotel_id,
+      check_in: checkIn,
+      check_out: checkOut
     }
-    if (!query.checkOut) {
-      if (!this.state.checkOut) query.checkOut = moment().add(1, 'day').format('YYYY-MM-DD');
-      else query.checkOut = this.state.checkOut;
-    }
+    this.setState({ checkIn, checkOut })
     getUpdatedDataFromServer(query, this.handleResponse);
   }
 
@@ -164,7 +170,7 @@ class App extends React.Component {
   renderCalendarPortal () {
     return ReactDOM.createPortal(
       <Calendar
-        getUpdatedData={this.getUpdatedData}
+        getUpdatedDates={this.getUpdatedDates}
         calculateAvrgRate={this.calculateAvrgRate}
         displayNotAvailableMsg={this.displayNotAvailableMsg}
         changeCalendarView={this.changeCalendarView}

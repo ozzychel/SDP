@@ -44,7 +44,7 @@ class Guests extends React.Component {
       'guestsNumber': guestsTotal,
       'roomsNumber': this.state.roomsNumber,
       'adultsNumber': this.state.adultsNumber,
-      'childrenNumber': this.state.childrenNumber
+      'childrenNumber': this.state.childrenNumber,
     });
     this.props.getUpdatedData(config);
     this.props.updateGuestPickerInfo(config);

@@ -1,6 +1,7 @@
 const db = require('../database/postgresDB/index');
 
-const getHotel = async (query, callback) => {
+const getHotel = async ({ hotelId, check_in }, callback) => {
+  let query = `SELECT * FROM hotel JOIN room ON hotel.id=room.hotel_id JOIN room_rate ON room.id=room_rate.room_id WHERE hotel.id = ${hotelId} AND room_rate.day_date = '${check_in}' ORDER BY room.id ASC, price ASC`;
   try{
     let queryResult = await db.pool.query(query);
     let processed = await calcualteLowestPrice(queryResult.rows);
@@ -10,6 +11,41 @@ const getHotel = async (query, callback) => {
     callback(err, null);
   }
 };
+
+const getHotelUpdated = async (hotelId, conf, callback) => {
+  let query = `SELECT * FROM hotel JOIN room ON hotel.id=room.hotel_id JOIN room_rate ON room.id=room_rate.room_id WHERE hotel.id = ${hotelId} AND room_rate.day_date = '${conf.check_in}' ORDER BY room.id ASC, price ASC`;
+  try{
+    let queryResult = await db.pool.query(query);
+    let processed = await calcualteLowestPrice(queryResult.rows);
+    let updated = await calculateWithUserConf(processed, conf);
+    callback(null, processed);
+  } catch (err) {
+    console.log('Error: in Model.getHotel', err);
+    callback(err, null);
+  }
+};
+
+const bookHotelRoom = async (hotelId, { guest_id, room_id, check_in, check_out }, callback) => {
+  let query = `INSERT INTO booking (guest_id, room_id, check_in, check_out) VALUES (${guest_id}, ${room_id}, ${check_in}, ${check_out})`
+  try{
+    let result = await db.pool.query(query);
+    callback(null, result)
+  } catch (err) {
+    console.log('Error: in Model.bookHotelRoom', err);
+    callback(err, null)
+  }
+}
+
+function calculateWithUserConf (processed, conf) {
+  // it should compare user config with certain room, total beds and caacity
+  // for the sake of simplicity in this project just minor adjustment
+  processed[0].prices.map((elem) => {
+    if(conf.roomsNumber - 1) elem.price *= conf.roomsNumber;
+    if(conf.guestsNumber > 4) elem.price *= 2;
+    return elem;
+  })
+  return processed;
+}
 
 function calcualteLowestPrice (arr) {
   let hotel = arr[0];
@@ -53,5 +89,7 @@ function calcualteLowestPrice (arr) {
 }
 
 module.exports = {
-  getHotel
+  getHotel,
+  getHotelUpdated,
+  bookHotelRoom
 };

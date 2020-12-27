@@ -23,5 +23,15 @@ if (cluster.isMaster) {
     Controllers.getHotel(req, res);
   });
 
+  app.get('/api/calendar/hotel/:hotelId/update', (req, res) => {
+    Controllers.getHotelUpdated(req, res);
+  });
+
+  app.post('/api/calendar/hotel/:hotelId/book', (req, res) => {
+    console.log('POST RECIEVED')
+    Controllers.bookHotelRoom(req, res);
+  });
+
+
   app.listen(port, () => console.log(`App is listening at http://localhost:${port}`));
 }
