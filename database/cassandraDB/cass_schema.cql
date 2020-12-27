@@ -35,8 +35,8 @@ CREATE TABLE guest_by_guestid (
   first_name text,
   last_name text,
   email text,
-  phone text
-  PRIMARY KEY (guest_id)
+  phone text,
+  PRIMARY KEY (email, guest_id)
 ) WITH CLUSTERING ORDER BY (guest_id ASC);
 
 DROP TABLE IF EXISTS guest_by_guestid_and_email;
@@ -45,7 +45,7 @@ CREATE TABLE guest_by_guestid_and_email (
   first_name text,
   last_name text,
   email text,
-  phone text
+  phone text,
   PRIMARY KEY ((guest_id, email), last_name)
 ) WITH CLUSTERING ORDER BY (last_name ASC);
 
@@ -55,7 +55,7 @@ CREATE TABLE guest_by_guestid_and_lastname (
   first_name text,
   last_name text,
   email text,
-  phone text
+  phone text,
   PRIMARY KEY ((guest_id, last_name), email)
 ) WITH CLUSTERING ORDER BY (email ASC);
 
@@ -70,11 +70,12 @@ CREATE TABLE room_rate_by_date_and_price (
   reviews_total int,
   rooms_total int,
   room_id int,
+  room_beds smallint,
   rate_id int,
   service_id smallint,
   service_title text,
   price int,
-  day_Date date
+  day_Date date,
   PRIMARY KEY ((day_Date, price), hotel_id)
 ) WITH CLUSTERING ORDER BY (hotel_id ASC);
 
@@ -89,16 +90,18 @@ CREATE TABLE room_rate_by_hotelid_and_date (
   reviews_total int,
   rooms_total int,
   room_id int,
+  room_beds smallint,
   rate_id int,
   service_id smallint,
   service_title text,
   price int,
-  day_Date date
-  PRIMARY KEY ((hotel_id, date), price)
+  day_Date date,
+  PRIMARY KEY ((hotel_id, day_date), price)
 ) WITH CLUSTERING ORDER BY (price ASC);
 
 DROP TABLE IF EXISTS booking_by_guestid_and_roomid;
 CREATE TABLE booking_by_guestid_and_roomid (
+  booking_id int,
   guest_id int,
   guest_firstname text,
   guest_lastname text,
@@ -118,7 +121,8 @@ CREATE TABLE booking_by_guestid_and_roomid (
 ) WITH CLUSTERING ORDER BY (check_in ASC);
 
 DROP TABLE IF EXISTS booking_by_guestid_and_checkin;
-CREATE TABLE booking_by_guestid_and_roomid (
+CREATE TABLE booking_by_guestid_and_checkin (
+  booking_id int,
   guest_id int,
   guest_firstname text,
   guest_lastname text,
@@ -139,6 +143,7 @@ CREATE TABLE booking_by_guestid_and_roomid (
 
 DROP TABLE IF EXISTS booking_by_guestid_and_hotelid;
 CREATE TABLE booking_by_guestid_and_hotelid (
+  booking_id int,
   guest_id int,
   guest_firstname text,
   guest_lastname text,
@@ -167,109 +172,109 @@ FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/hotel.csv'
 with header=true and delimiter =',';
 
 /* import guests */
-COPY guest_by_guestid(guest_id int,first_name,last_name,email,phone)
+COPY guest_by_guestid(guest_id,first_name,last_name,email,phone)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/guest.csv'
 with header=true and delimiter =',';
 
-COPY guest_by_guestid_and_email(guest_id int,first_name,last_name,email,phone)
+COPY guest_by_guestid_and_email(guest_id,first_name,last_name,email,phone)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/guest.csv'
 with header=true and delimiter =',';
 
-COPY guest_by_guestid_and_lastname(guest_id int,first_name,last_name,email,phone)
+COPY guest_by_guestid_and_lastname(guest_id,first_name,last_name,email,phone)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/guest.csv'
 with header=true and delimiter =',';
 
 /* import room_rates(by date and price) */
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate1.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate2.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate3.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate4.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate5.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate6.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate7.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate8.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate9.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_date_and_price(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_date_and_price(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate10.csv'
 with header=true and delimiter =',';
 
 /* import room_rates(by hotel_id and date) */
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate1.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate2.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate3.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate4.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate5.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate6.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate7.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate8.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate9.csv'
 with header=true and delimiter =',';
 
-COPY room_rate_by_hotelid_and_date(hotel_id int,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,rate_id,service_id,service_title,price,day_Date)
+COPY room_rate_by_hotelid_and_date(hotel_id,title,zip_code,address,url,rating,reviews_total,rooms_total,room_id,room_beds,rate_id,service_id,service_title,price,day_Date)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/roomRate10.csv'
 with header=true and delimiter =',';
 
 /* import bookings */
-COPY booking_by_guestid_and_roomid(guest_id,guest_firstname,guest_lastname,guest_email,guest_phone,guest_qty,check_in,check_out,hotel_id,hotel_title,hotel_url,hotel_address,hotel_zipcode,room_id,room_beds)
+COPY booking_by_guestid_and_roomid(booking_id,guest_id,guest_firstname,guest_lastname,guest_email,guest_phone,guest_qty,check_in,check_out,hotel_id,hotel_title,hotel_url,hotel_address,hotel_zipcode,room_id,room_beds)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/booking.csv'
 with header=true and delimiter =',';
 
-COPY booking_by_guestid_and_checkin(guest_id,guest_firstname,guest_lastname,guest_email,guest_phone,guest_qty,check_in,check_out,hotel_id,hotel_title,hotel_url,hotel_address,hotel_zipcode,room_id,room_beds)
+COPY booking_by_guestid_and_checkin(booking_id,guest_id,guest_firstname,guest_lastname,guest_email,guest_phone,guest_qty,check_in,check_out,hotel_id,hotel_title,hotel_url,hotel_address,hotel_zipcode,room_id,room_beds)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/booking.csv'
 with header=true and delimiter =',';
 
-COPY booking_by_guestid_and_hotelid(guest_id,guest_firstname,guest_lastname,guest_email,guest_phone,guest_qty,check_in,check_out,hotel_id,hotel_title,hotel_url,hotel_address,hotel_zipcode,room_id,room_beds)
+COPY booking_by_guestid_and_hotelid(booking_id,guest_id,guest_firstname,guest_lastname,guest_email,guest_phone,guest_qty,check_in,check_out,hotel_id,hotel_title,hotel_url,hotel_address,hotel_zipcode,room_id,room_beds)
 FROM '/Users/ozzy_chel/Projects/SDP/data/cassandraData/booking.csv'
 with header=true and delimiter =',';

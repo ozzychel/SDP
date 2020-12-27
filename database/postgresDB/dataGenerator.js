@@ -14,9 +14,11 @@ const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 // 100 hotels * 50 rooms/hotel generates 18 mil lines of data
 
 const config = {
-  HOTELS_TOTAL: 100,
-  ROOMS_PER_HOTEL: 5,
-  GUESTS_TOTAL: 25,
+  HOTELS_TOTAL: 100, // total hotels to create
+  ROOMS_PER_HOTEL: 50, // number of rooms per 1 hotel
+  GUESTS_TOTAL: 25000, // total guests to create
+  DAYS_CREATE_RATE: 5, // number of days from today to create rate (massive!!!)
+  NUMBER_OF_RATE_FILES: 10 // number of .csv file to split created rates
 }
 
 // count generated data
@@ -108,8 +110,7 @@ const createRoomRate = (room) => {
     {id:9, title: 'eDreams'},
     {id:10, title: 'Tripadvisor'}
   ];
-  let days = moment().isLeapYear() ? 366 : 365;
-    for (let i = 0; i < days; i++) {
+    for (let i = 0; i < config.DAYS_CREATE_RATE; i++) {
       let sqlDate = moment().add(i, 'days').format('YYYY-MM-DD')
       for(let j = 0; j < serviceList.length; j++) {
         let rate = {
@@ -454,8 +455,7 @@ const driver = async () => {
 
   // create roomRates, write to several files
   const leng = dataFromRoomCSV.length;
-  const numberOfRateFiles = 10;
-  const chunkSize = Math.floor(leng / numberOfRateFiles);
+  const chunkSize = Math.floor(leng / config.NUMBER_OF_RATE_FILES);
   let currentNum = 1;
 
   for (let i = 0; i < leng; i += chunkSize) {
