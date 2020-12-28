@@ -35,9 +35,5 @@ if (cluster.isMaster) {
     Controllers.deleteBooking(req, res);
   });
 
-  // app.put
-
-
-
   app.listen(port, () => console.log(`App is listening at http://localhost:${port}`));
 }

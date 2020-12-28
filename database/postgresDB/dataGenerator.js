@@ -5,6 +5,7 @@ const fsPromises = fs.promises;
 const path = require('path');
 const csvReader = require('csv-parser');
 const csvWriter = require('csv-write-stream');
+const csvSplitStream = require('csv-split-stream');
 
 // scecify path to store generated CSV files
 const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
@@ -14,11 +15,12 @@ const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
 // 100 hotels * 50 rooms/hotel generates 18 mil lines of data
 
 const config = {
-  HOTELS_TOTAL: 100, // total hotels to create
-  ROOMS_PER_HOTEL: 50, // number of rooms per 1 hotel
-  GUESTS_TOTAL: 2500, // total guests to create
-  DAYS_CREATE_RATE: 100, // number of days from today to create rate (massive!!!)
-  NUMBER_OF_RATE_FILES: 10 // number of .csv file to split created rates
+  HOTELS_TOTAL: 10000000, // total hotels to create
+  ROOMS_PER_HOTEL: 1, // number of rooms per 1 hotel
+  GUESTS_TOTAL: 1000000, // total guests to create
+  DAYS_CREATE_RATE: 2, // number of days from today to create rate (massive!!!)
+  NUMBER_OF_HOTEL_FILES: 5, // total number of hotel files
+  NUMBER_OF_RATE_FILES: 10 // total number of roomRate files
 }
 
 // count generated data
@@ -423,6 +425,24 @@ const createFolder = async () => {
   }
 };
 
+// split hotel csv into several smaller files
+const splitHotels = ({ HOTELS_TOTAL, NUMBER_OF_HOTEL_FILES }) => {
+  return csvSplitStream.split(
+    fs.createReadStream(`${OUTPUT_PATH}/hotel.csv`),
+    { lineLimit: Math.floor(HOTELS_TOTAL / NUMBER_OF_HOTEL_FILES) },
+    (index) => fs.createWriteStream(`${OUTPUT_PATH}/hotel${index}.csv`)
+  )
+  .then(csvSplitResponse => {
+    console.log(`+++ Hotel.csv splitted`, csvSplitResponse);
+    fs.unlink(`${OUTPUT_PATH}/hotel.csv`, (err) => {
+      if (err) throw err;
+      console.log(`+++ Hotel.csv was deleted after split`);
+    });
+  }).catch(csvSplitError => {
+    console.log('csvSplitStream failed!', csvSplitError);
+  });
+}
+
 const driver = async () => {
   // create folder
   const folder = await createFolder();
@@ -456,7 +476,7 @@ const driver = async () => {
   // create roomRates, write to several files
   const leng = dataFromRoomCSV.length;
   const chunkSize = Math.floor(leng / config.NUMBER_OF_RATE_FILES);
-  let currentNum = 1;
+  let currentNum = 0;
 
   for (let i = 0; i < leng; i += chunkSize) {
     let writeRoomRates = csvWriter({ headers: ['id', 'service_id', 'service_title', 'price', 'day_Date', 'room_id']})
@@ -466,6 +486,9 @@ const driver = async () => {
   }
 
   console.log('\n','TOTAL DATA GENERATED:', counters, '\n')
+
+  // split csv files to several smaller files to make seeding easier
+  const splittedHotels = await splitHotels(config);
 };
 
 driver();

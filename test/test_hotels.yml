@@ -1,0 +1,25 @@
+config:
+  target: "http://localhost:9000/api/calendar/hotels"
+  processor: "./helpers.js"
+  phases:
+    - duration: 10
+      arrivalRate: 500
+      name: Warm up
+    - pause: 5
+    - duration: 20
+      arrivalRate: 0
+      rampTo: 1000
+      name: Ramp up load
+    - pause: 5
+    - duration: 40
+      arrivalRate: 250
+      name: Sustained load
+scenarios:
+  - name: "Browse hotels and deals for current date"
+    flow:
+      - function: "getRandomIdAndDates"
+      - get:
+          url: "/{{ id }}"
+          qs:
+            check_in: "{{ check_in }}"
+            check_out: "{{ check_out }}"
