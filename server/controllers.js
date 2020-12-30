@@ -1,7 +1,7 @@
 const Model = require('./models');
 
 const getHotel = (req, res) => {
-  Model.getHotel({hotelId:req.params.hotelId, check_in: req.query.check_in}, (err, data) => {
+  Model.getHotel(req.params, req.query, (err, data) => {
     if (err) res.status(400).send();
     if (data) res.status(200).send(data);
   })

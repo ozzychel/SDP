@@ -45,7 +45,7 @@ class App extends React.Component {
 
   componentDidMount () {
     this.getData({
-      hotelId: 9000000,
+      hotelId: 3,
       check_in: moment(this.state.today).format('YYYY-MM-DD'),
       check_out: moment(this.state.today).add(1, 'day').format('YYYY-MM-DD')
     });

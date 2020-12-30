@@ -29,7 +29,7 @@ CREATE TABLE room (
 );
 
 CREATE TABLE booking (
-  id SERIAL NOT NULL,
+  id SERIAL PRIMARY KEY,
   guest_id INTEGER REFERENCES guest(id),
   room_id INTEGER REFERENCES room(id),
   check_in DATE NOT NULL,
@@ -136,16 +136,9 @@ FROM temp_room_rate;
 DROP TABLE temp_room_rate;
 
 -- create indexes
-CREATE INDEX CONCURRENTLY hotel_id_idx ON hotel (id);
-CREATE INDEX CONCURRENTLY guest_id_idx ON guest (id);
 
-CREATE INDEX CONCURRENTLY room_id_idx ON room (id);
 CREATE INDEX CONCURRENTLY room_hotelid_idx ON room (hotel_id);
-
-CREATE INDEX CONCURRENTLY booking_id_idx ON booking (id);
 CREATE INDEX CONCURRENTLY booking_guestid_idx ON booking (guest_id);
 CREATE INDEX CONCURRENTLY booking_roomid_idx ON booking (room_id);
-
-CREATE INDEX CONCURRENTLY room_rate_id_idx ON room_rate (id);
 CREATE INDEX CONCURRENTLY room_rate_roomid_idx ON room_rate (room_id);
 CREATE INDEX CONCURRENTLY room_rate_day_idx ON room_rate (day_Date);
