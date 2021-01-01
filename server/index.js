@@ -19,7 +19,7 @@ if (cluster.isMaster) {
   app.use(express.static('public'));
   app.use(morgan('dev'));
 
-  app.get('/api/calendar/hotels/:hotelId', (req, res) => {
+  app.get('/api/calendar/hotel/:hotelId', (req, res) => {
     Controllers.getHotel(req, res);
   });
 
