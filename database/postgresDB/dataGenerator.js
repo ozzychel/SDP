@@ -6,19 +6,15 @@ const path = require('path');
 const csvReader = require('csv-parser');
 const csvWriter = require('csv-write-stream');
 const csvSplitStream = require('csv-split-stream');
+const conf = require('../../config');
 
-// scecify path to store generated CSV files
-const OUTPUT_PATH = path.join(__dirname, '../../../', 'data', 'postgresData');
-
-// set up this config to specify desired amount of data to be generated
-// 1000 hotels * 50 rooms/hotel generates 180 mil lines of data
-// 100 hotels * 50 rooms/hotel generates 18 mil lines of data
+const OUTPUT_PATH = conf.OUTPUT_PATH;
 
 const config = {
-  HOTELS_TOTAL: 10000000, // total hotels to create
-  ROOMS_PER_HOTEL: 10, // number of rooms per 1 hotel
-  GUESTS_TOTAL: 500000, // total guests to create
-  DAYS_CREATE_RATE: 10, // number of days from today to create rate (massive!!!)
+  HOTELS_TOTAL: conf.HOTELS_TOTAL, // total hotels to create
+  ROOMS_PER_HOTEL: conf.ROOMS_PER_HOTEL, // number of rooms per 1 hotel
+  GUESTS_TOTAL: conf.GUESTS_TOTAL, // total guests to create
+  DAYS_CREATE_RATE: conf.DAYS_CREATE_RATE, // number of days from today to create rate (massive!!!)
   NUMBER_OF_HOTEL_FILES: 5, // total number of hotel files
   NUMBER_OF_RATE_FILES: 10 // total number of roomRate files
 }

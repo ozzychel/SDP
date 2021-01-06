@@ -1,7 +1,8 @@
-import React from 'react';
+// import React from 'react';
+// import styled from 'styled-components';
+
 import BestDealsEntity from './BestDealsEntity.jsx';
 import getBestOrRestDeals from '../lib/getBestOrRestDeals.js';
-import styled from 'styled-components';
 
 const BestDeals = ({ currentHotel, userDates }) => {
   if (currentHotel.length === 0 || !currentHotel) {

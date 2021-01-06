@@ -1,6 +1,7 @@
-import React from 'react';
+// import React from 'react';
+// import styled from 'styled-components';
+
 import Children from './Children.jsx';
-import styled from 'styled-components';
 import { faMinus, faPlus, faBed, faUserFriends, faChild } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 

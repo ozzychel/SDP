@@ -1,8 +1,8 @@
-import axios from 'axios';
+// import axios from 'axios';
 
 const getDataFromServer = async ({ hotelId, check_in, check_out }) => {
   try {
-    const response = await axios.get(`/api/calendar/hotels/${hotelId}`, {
+    const response = await axios.get(`/api/calendar/hotel/${hotelId}`, {
       params: { check_in, check_out }
     });
     return response.data;

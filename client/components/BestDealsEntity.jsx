@@ -1,6 +1,8 @@
-import React from 'react';
-import moment from 'moment';
-import styled from 'styled-components';
+// import React from 'react';
+// import styled from 'styled-components';
+// import moment from 'moment';
+// moment.locale('en-au');
+
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 

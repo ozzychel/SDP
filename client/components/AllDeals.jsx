@@ -1,7 +1,8 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+// import React from 'react';
+// import ReactDOM from 'react-dom';
+// import styled from 'styled-components';
+
 import getBestOrRestDeals from '../lib/getBestOrRestDeals.js';
-import styled from 'styled-components';
 import { faCaretDown, faExternalLinkAlt, faTimesCircle} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 

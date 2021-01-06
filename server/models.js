@@ -3,7 +3,6 @@ const db = require('../database/postgresDB/index');
 const getHotel = async ({ hotelId }, { check_in }, callback) => {
   let query = `SELECT * FROM hotel JOIN room ON hotel.id=room.hotel_id JOIN room_rate ON room.id=room_rate.room_id WHERE hotel.id = ${hotelId} AND room_rate.day_date = '${check_in}' ORDER BY room.id ASC, price ASC`;
   try{
-    console.log('shoot query')
     let queryResult = await db.pool.query(query);
     let processed = await calcualteLowestPrice(queryResult.rows);
     callback(null, processed);

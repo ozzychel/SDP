@@ -1,14 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import axios from 'axios';
+// import React from 'react';
+// import ReactDOM from 'react-dom';
+// import axios from 'axios';
+// import styled from 'styled-components';
+// import moment from 'moment';
+// moment.locale('en-au');
+
 import Calendar from './components/Calendar.jsx';
 import Guests from './components/Guests.jsx';
 import BestDeals from './components/BestDeals.jsx';
 import AllDeals from './components/AllDeals.jsx';
-import moment from 'moment';
 import getDataFromServer from './lib/getDataFromServer.js';
 import getUpdatedDataFromServer from './lib/getUpdatedDataFromServer.js';
-import styled from 'styled-components';
 import { faCalendarAlt, faUserFriends } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -67,8 +69,8 @@ class App extends React.Component {
       adultsNumber: config.adultsNumber,
       childrenNumber: config.childrenNumber,
       hotelId: this.state.currentHotel[0].hotel_id,
-      check_in: !this.state.checkIn ? moment().format('YYYY-MM-DD') : this.state.checkIn,
-      check_out: !this.state.checkOut ? moment().add(1, 'day').format('YYYY-MM-DD') : this.state.checkOut
+      check_in: !this.state.checkIn ? this.state.today.format('YYYY-MM-DD') : this.state.checkIn,
+      check_out: !this.state.checkOut ? this.state.today.add(1, 'day').format('YYYY-MM-DD') : this.state.checkOut
     }
     getUpdatedDataFromServer(query, this.handleResponse);
   };
@@ -136,8 +138,8 @@ class App extends React.Component {
     });
   }
 
-  renderDate (param) {
-    return !param ? (<span>{moment().format('ddd')}, {moment().format('MM/DD/YYYY')}</span>) :
+  renderDate (param, day) {
+    return !param ? (<span>{moment().add(day, 'day').format('ddd')}, {moment().add(day, 'day').format('MM/DD/YYYY')}</span>) :
       (<span>{moment(param).format('ddd')}, {moment(param).format('MM/DD/YYYY')}</span>);
   }
 
@@ -149,7 +151,7 @@ class App extends React.Component {
             <PickerButtonIcon><FontAwesomeIcon icon={faCalendarAlt}/></PickerButtonIcon>
             <PickerButtonField>
               <PickerButtonCheckIn>Check In</PickerButtonCheckIn>
-              <PickerButtonDate>{this.renderDate(this.state.checkIn)}</PickerButtonDate>
+              <PickerButtonDate>{this.renderDate(this.state.checkIn, 0)}</PickerButtonDate>
             </PickerButtonField>
           </PickerButtonDiv>
         </PickerButton>
@@ -159,7 +161,7 @@ class App extends React.Component {
             <PickerButtonIcon><FontAwesomeIcon icon={faCalendarAlt}/></PickerButtonIcon>
             <PickerButtonField>
               <PickerButtonCheckIn>Check Out</PickerButtonCheckIn>
-              <PickerButtonDate>{this.renderDate(this.state.checkOut)}</PickerButtonDate>
+              <PickerButtonDate>{this.renderDate(this.state.checkOut, 1)}</PickerButtonDate>
             </PickerButtonField>
           </PickerButtonDiv>
         </PickerButton>

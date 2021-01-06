@@ -1,4 +1,4 @@
-import axios from 'axios';
+// import axios from 'axios';
 
 const getUpdatedDataFromServer = async ({hotelId, check_in, check_out, adultsNumber, childrenNumber, guestsNumber, roomsNumber}, cb) => {
   try {
