@@ -233,8 +233,6 @@ Main steps and goals:
 - [Artillery load test config and results](https://gist.github.com/ozzychel/723a3a5e97f17cd056838ef8e37c2724)
 
 ## Related Projects
-
-  - [Proxy](https://github.com/ozzychel/SDP-calendar-proxy)
   - [Photo-carousel](https://github.com/Hotellooo/photos-carousel)
   - [About](https://github.com/Hotellooo/about)
   - [Reviews](https://github.com/Hotellooo/reviews)
